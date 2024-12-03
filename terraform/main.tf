@@ -12,12 +12,12 @@ resource "aws_security_group" "docker_sg" {
   }
 
   # Backend port
-#   ingress {
-#     from_port   = 3000
-#     to_port     = 3000
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   # SSH access
   ingress {
