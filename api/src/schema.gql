@@ -1,0 +1,81 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input AddMessageInput {
+  content: String!
+  ticketId: String!
+}
+
+type ChatMessage {
+  content: String!
+  role: String!
+  timestamp: String!
+}
+
+input ChatMessageInput {
+  message: String!
+  sessionId: String!
+}
+
+type ChatResponse {
+  done: Boolean!
+  message: String!
+}
+
+input CreateTicketInput {
+  description: String
+  title: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Message {
+  content: String!
+  createdAt: DateTime!
+  id: ID!
+  ticket: Ticket!
+  ticketId: String!
+}
+
+type Mutation {
+  addMessage(addMessageInput: AddMessageInput!): Message!
+  chatMessage(input: ChatMessageInput!): ChatResponse!
+  createTicket(createTicketInput: CreateTicketInput!): Ticket!
+  updateTicket(updateTicketInput: UpdateTicketInput!): Ticket!
+}
+
+type Query {
+  getConversationHistory(sessionId: String!): [ChatMessage!]!
+  ticket(id: String!): Ticket!
+  tickets(searchTerm: String, status: String): [Ticket!]!
+}
+
+type Ticket {
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  messages: [Message!]
+  status: TicketStatus!
+  title: String!
+  updatedAt: DateTime!
+}
+
+enum TicketStatus {
+  AI_HANDLING
+  CLOSED
+  IN_PROGRESS
+  OPEN
+  RESOLVED
+  STAFF_ASSIGNED
+}
+
+input UpdateTicketInput {
+  description: String
+  id: String!
+  status: TicketStatus
+  title: String
+}

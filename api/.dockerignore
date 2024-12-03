@@ -1,0 +1,9 @@
+node_modules
+npm-debug.log
+dist
+.git
+.env
+.env.*
+# Don't exclude these files
+!wait-for-it.sh
+!start.sh

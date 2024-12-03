@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  backend:
+    container_name: backend
+    build:
+      # image: 552912569893.dkr.ecr.eu-central-1.amazonaws.com/tenant-test/backend:latest
+      context: ./api
+      dockerfile: Dockerfile
+    env_file:
+      - ./.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app_network
+
+  frontend:
+    container_name: frontend
+    build:
+      # image: 552912569893.dkr.ecr.eu-central-1.amazonaws.com/tenant-test/frontend:latest
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        GRAPHQL_URI: ${GRAPHQL_URI:-http://localhost:3000/graphql}
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app_network
+
+  postgres:
+    image: postgres:latest
+    ports:
+      - '5432:5432'
+    env_file:
+      - ./.env.db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U iman -d tenant_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  app_network:
+    driver: bridge
