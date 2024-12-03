@@ -48,6 +48,23 @@ jobs:
         export PUBLIC_IP=$(cat instance_ip.txt)
         echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
 
+    # Wait for EC2 instance to be ready
+    - name: Wait for EC2 Instance to be Ready
+      run: |
+        INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=docker-compose-host" --query "Reservations[0].Instances[0].InstanceId" --output text)
+        aws ec2 wait instance-status-ok --instance-ids $INSTANCE_ID
+
+    # Wait for SSH to be Ready
+    - name: Wait for SSH Connectivity
+      run: |
+        for i in {1..10}; do
+          ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_KEY_PATH }} ubuntu@${{ env.PUBLIC_IP }} "echo SSH is ready" && break || sleep 10
+        done
+
+    # Sleep for 60 seconds
+    - name: Sleep for Server Initialization
+      run: sleep 60
+
     # Log in to Amazon ECR
     - name: Log in to Amazon ECR
       id: login-ecr
