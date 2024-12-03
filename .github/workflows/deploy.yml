@@ -55,11 +55,11 @@ jobs:
         echo "Public IP is $PUBLIC_IP"
         echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
 
-    # Wait for EC2 instance to be ready
-    - name: Wait for EC2 Instance to be Ready
-      run: |
-        INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=docker-compose-host" --query "Reservations[0].Instances[0].InstanceId" --output text)
-        aws ec2 wait instance-status-ok --instance-ids $INSTANCE_ID
+    # # Wait for EC2 instance to be ready
+    # - name: Wait for EC2 Instance to be Ready
+    #   run: |
+    #     INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=docker-compose-host" --query "Reservations[0].Instances[0].InstanceId" --output text)
+    #     aws ec2 wait instance-status-ok --instance-ids $INSTANCE_ID
 
     # Wait for SSH to be Ready
     - name: Wait for SSH Connectivity
