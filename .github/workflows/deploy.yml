@@ -104,6 +104,7 @@ jobs:
         # Copy docker-compose.prod.yml and .env to EC2
         scp -o StrictHostKeyChecking=no -i ec2-key.pem docker-compose.prod.yml ubuntu@${{ env.PUBLIC_IP }}:/home/ubuntu/
 
+        ssh -o StrictHostKeyChecking=no -i ec2-key.pem ubuntu@${{ env.PUBLIC_IP }} << EOF
         aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 552912569893.dkr.ecr.eu-central-1.amazonaws.com
 
         # Retrieve environment variables from SSM
@@ -114,7 +115,6 @@ jobs:
         export POSTGRES_PASSWORD=$(aws ssm get-parameter --name "/tenant-test/POSTGRES_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
         export POSTGRES_DB=$(aws ssm get-parameter --name "/tenant-test/POSTGRES_DB" --with-decryption --query "Parameter.Value" --output text)
 
-        ssh -o StrictHostKeyChecking=no -i ec2-key.pem ubuntu@${{ env.PUBLIC_IP }} << EOF
         docker compose -f docker-compose.prod.yml pull
         docker compose -f docker-compose.prod.yml up -d --remove-orphans
         EOF
