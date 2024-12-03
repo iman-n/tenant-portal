@@ -115,6 +115,6 @@ jobs:
         export POSTGRES_DB=$(aws ssm get-parameter --name "/tenant-test/POSTGRES_DB" --with-decryption --query "Parameter.Value" --output text)
 
         ssh -o StrictHostKeyChecking=no -i ec2-key.pem ubuntu@${{ env.PUBLIC_IP }} << EOF
-        docker-compose -f docker-compose.prod.yml pull
-        docker-compose -f docker-compose.prod.yml up -d --remove-orphans
+        docker compose -f docker-compose.prod.yml pull
+        docker compose -f docker-compose.prod.yml up -d --remove-orphans
         EOF
