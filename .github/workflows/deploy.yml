@@ -29,17 +29,18 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    # Initialize Terraform
+    # Navigate to Terraform directory and initialize
     - name: Terraform Init
+      working-directory: ./terraform
       run: terraform init
 
-    # Apply Terraform
+    # Apply Terraform to provision resources
     - name: Terraform Apply
       id: tf_apply
+      working-directory: ./terraform
       run: |
         terraform apply -auto-approve
-        # Extract public IP from output
-        terraform output -raw instance_ip > instance_ip.txt
+        terraform output -raw public_ip > ../public_ip.txt
 
     # Set public IP as environment variable
     - name: Extract Public IP
@@ -54,6 +55,7 @@ jobs:
 
     # Build and push backend Docker image
     - name: Build and Push Backend Image
+      working-directory: ./api
       run: |
         docker build -t backend .
         docker tag backend:latest ${{ secrets.ECR_REPOSITORY }}/backend:latest
@@ -61,6 +63,7 @@ jobs:
 
     # Build and push frontend Docker image with dynamic public IP
     - name: Build and Push Frontend Image
+      working-directory: ./web
       run: |
         docker build --build-arg VITE_GRAPHQL_URI=http://${{ env.PUBLIC_IP }}:3000/graphql -t frontend ./frontend
         docker tag frontend:latest ${{ secrets.ECR_REPOSITORY }}/frontend:latest
