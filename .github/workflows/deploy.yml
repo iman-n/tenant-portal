@@ -94,7 +94,7 @@ jobs:
     - name: Build and Push Frontend Image
       working-directory: ./web
       run: |
-        docker build --build-arg GRAPHQL_URI="http://${{ env.PUBLIC_IP }}:3000/graphql" -t frontend .
+        docker build --build-arg GRAPHQL_URI="http://${{ env.PUBLIC_IP }}/graphql" -t frontend .
         docker tag frontend:latest ${{ secrets.ECR_REPOSITORY }}/frontend:latest
         docker push ${{ secrets.ECR_REPOSITORY }}/frontend:latest
 
