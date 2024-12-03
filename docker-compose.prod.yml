@@ -1,11 +1,11 @@
-version: '3.8'
-
 services:
   backend:
     container_name: backend
     image: 552912569893.dkr.ecr.eu-central-1.amazonaws.com/tenant-test/backend:latest
-    # env_file:
-    #   - ./.env
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
     ports:
       - "3000:3000"
     depends_on:
@@ -30,8 +30,10 @@ services:
     image: postgres:latest
     ports:
       - '5432:5432'
-    # env_file:
-    #   - ./.env.db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:

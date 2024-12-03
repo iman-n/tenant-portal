@@ -61,11 +61,16 @@ jobs:
     #     INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=docker-compose-host" --query "Reservations[0].Instances[0].InstanceId" --output text)
     #     aws ec2 wait instance-status-ok --instance-ids $INSTANCE_ID
 
+    - name: Set up SSH key
+      run: |
+        echo "${{ secrets.EC2_PRIVATE_KEY }}" > ec2-key.pem
+        chmod 600 ec2-key.pem
+
     # Wait for SSH to be Ready
     - name: Wait for SSH Connectivity
       run: |
         for i in {1..10}; do
-          ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_KEY_PATH }} ubuntu@${{ env.PUBLIC_IP }} "echo SSH is ready" && break || sleep 10
+          ssh -o StrictHostKeyChecking=no -i ec2-key.pem ubuntu@${{ env.PUBLIC_IP }} "echo SSH is ready" && break || sleep 10
         done
 
     # Sleep for 60 seconds
@@ -93,15 +98,10 @@ jobs:
         docker tag frontend:latest ${{ secrets.ECR_REPOSITORY }}/frontend:latest
         docker push ${{ secrets.ECR_REPOSITORY }}/frontend:latest
 
-    - name: Set up SSH key
-      run: |
-        echo "${{ secrets.EC2_PRIVATE_KEY }}" > ec2-key.pem
-        chmod 600 ec2-key.pem
-
     # Deploy on EC2
     - name: SSH and Deploy
       run: |
-        # Copy docker-compose.prod.yml and .env to EC2
+        # Copy docker-compose.prod.yml to EC2
         scp -o StrictHostKeyChecking=no -i ec2-key.pem docker-compose.prod.yml ubuntu@${{ env.PUBLIC_IP }}:/home/ubuntu/
 
         ssh -o StrictHostKeyChecking=no -i ec2-key.pem ubuntu@${{ env.PUBLIC_IP }} << EOF
