@@ -18,7 +18,7 @@ jobs:
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v2
       with:
-        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+        # cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
         terraform_version: latest
 
     # Configure AWS credentials
@@ -66,11 +66,16 @@ jobs:
         docker tag frontend:latest ${{ secrets.ECR_REPOSITORY }}/frontend:latest
         docker push ${{ secrets.ECR_REPOSITORY }}/frontend:latest
 
+    - name: Set up SSH key
+      run: |
+        echo "${{ secrets.EC2_PRIVATE_KEY }}" > ec2-key.pem
+        chmod 600 ec2-key.pem
+
     # Deploy on EC2
     - name: SSH and Deploy
       run: |
         # Copy docker-compose.prod.yml and .env to EC2
-        scp -o StrictHostKeyChecking=no -i ${{ secrets.EC2_KEY_PATH }} docker-compose.prod.yml ubuntu@${{ env.PUBLIC_IP }}:/home/ubuntu/
+        scp -o StrictHostKeyChecking=no -i ${{ ec2-key.pem }} docker-compose.prod.yml ubuntu@${{ env.PUBLIC_IP }}:/home/ubuntu/
 
         aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 552912569893.dkr.ecr.eu-central-1.amazonaws.com
 
@@ -82,7 +87,7 @@ jobs:
         export POSTGRES_PASSWORD=$(aws ssm get-parameter --name "/tenant-test/POSTGRES_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
         export POSTGRES_DB=$(aws ssm get-parameter --name "/tenant-test/POSTGRES_DB" --with-decryption --query "Parameter.Value" --output text)
 
-        ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_KEY_PATH }} ubuntu@${{ env.PUBLIC_IP }} << EOF
+        ssh -o StrictHostKeyChecking=no -i ${{ ec2-key.pem }} ubuntu@${{ env.PUBLIC_IP }} << EOF
         cd /path/to/docker-compose/files
         docker-compose -f docker-compose.prod.yml pull
         docker-compose -f docker-compose.prod.yml up -d --remove-orphans
